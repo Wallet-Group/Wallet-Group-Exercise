@@ -10,24 +10,51 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-# Compiler flags
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+# Compiler flags - MSVC specific
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_DEBUG "/W4 /Zi /Od /RTC1")
+    set(CMAKE_CXX_FLAGS_RELEASE "/W4 /O2 /DNDEBUG")
+else()
+    # GCC/Clang flags
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+endif()
 
 # Include directories
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
-# Collect all source files from services directory
-file(GLOB_RECURSE SERVICE_SOURCES "services/*.cpp")
-
-# Create executable
-add_executable(${PROJECT_NAME} 
-    main.cpp
-    ${SERVICE_SOURCES}
+include_directories(
+    ${CMAKE_SOURCE_DIR}/interface
+    ${CMAKE_SOURCE_DIR}/modules/json
+    ${CMAKE_SOURCE_DIR}/modules/File
+    ${CMAKE_SOURCE_DIR}/helper
 )
 
-# Link libraries if needed (example: pthread for threading)
-# target_link_libraries(${PROJECT_NAME} pthread)
+# Collect source files
+file(GLOB_RECURSE SERVICE_SOURCES "services/*.cpp")
+file(GLOB_RECURSE SERVICE_MANAGER_SOURCES "helper/File/*.cpp")
+file(GLOB_RECURSE JSON_MODULE_SOURCES "modules/json/json.hpp")
+file(GLOB_RECURSE FILE_MODULE_SOURCES "modules/File/JsonFileManager.cpp")
+file(GLOB_RECURSE HELPER_SOURCES "helper/*.cpp")
+file(GLOB_RECURSE MODEL_SOURCES "models/*.cpp")
+file(GLOB_RECURSE DEFINE_SOURCES "defined/*.cpp")
+
+# Create executable
+add_executable(${PROJECT_NAME}
+    main.cpp
+    ${SERVICE_SOURCES}
+    ${SERVICE_MANAGER_SOURCES}
+    ${JSON_MODULE_SOURCES}
+    ${FILE_MODULE_SOURCES}
+    ${HELPER_SOURCES}
+    ${MODEL_SOURCES}
+    ${DEFINE_SOURCES}
+)
+
+# Link libraries - MSVC specific
+if(MSVC)
+    target_link_libraries(${PROJECT_NAME} PRIVATE)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
+endif()
 
 # Install target
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
