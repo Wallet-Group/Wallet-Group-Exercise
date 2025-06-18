@@ -1,6 +1,9 @@
 #include "../interface/UserService.h"
 #include <filesystem>
 #include <unordered_map>
+#include <iostream>
+#include "../helper/HashHelper.h"
+#include "../helper/OTPHelper.h"
 using namespace std;
 using namespace nlohmann;
 
@@ -17,6 +20,8 @@ json UserService::userToJson(const User &user) const
     json j;
     j["username"] = user.getUsername();
     j["password"] = user.getPassword();
+    j["name"] = user.getName();
+    j["yearOfBirth"] = user.getYearOfBirth();
     j["role"] = static_cast<int>(user.getRole());
     return j;
 }
@@ -26,6 +31,8 @@ shared_ptr<User> UserService::jsonToUser(const json &j) const
     return make_shared<User>(
         j["username"].get<string>(),
         j["password"].get<string>(),
+        j["name"].get<string>(),
+        j["yearOfBirth"].get<int>(),
         static_cast<UserRole>(j["role"].get<int>()));
 }
 
@@ -83,28 +90,34 @@ optional<shared_ptr<User>> UserService::findUserByUsername(const string &usernam
     return nullopt;
 }
 
-bool UserService::registerUser(const string &username, const string &password, UserRole role)
+bool UserService::registerUser(const string &username, const string &password, const string &name, int yearOfBirth, UserRole role)
 {
     if (username == "")
         return false;
     else if (password == "")
         return false;
-    else if (role == UserRole::ADMIN)
-        return false;
     if (isUsernameTaken(username))
     {
         return false;
     }
-    users[username] = make_shared<User>(username, password, role);
+    // Generate salt and hash password with salt
+    string salt = HashHelper::generateSalt();
+    string hashedPassword = HashHelper::hashPassword(password, salt);
+    // Store hashed password (which includes salt) directly
+    users[username] = make_shared<User>(username, hashedPassword, name, yearOfBirth, role);
     return saveUsers(); // Save to file after registration
 }
 
 optional<shared_ptr<User>> UserService::login(const string &username, const string &password) const
 {
     auto user = findUserByUsername(username);
-    if (user && user.value()->getPassword() == password)
-    {
-        return user;
+    if (user) {
+        // Hash the input password and compare with stored hash
+        string hashedInputPassword = HashHelper::md5(password);
+        if (user.value()->getPassword() == hashedInputPassword)
+        {
+            return user;
+        }
     }
     return nullopt;
 }
@@ -126,8 +139,13 @@ bool UserService::updateUserPassword(const string &username, const string &oldPa
     {
         return false;
     }
-    if (user.value()->updatePassword(oldPassword, newPassword))
+    // Hash both old and new passwords for comparison and storage
+    string hashedOldPassword = HashHelper::md5(oldPassword);
+    string hashedNewPassword = HashHelper::md5(newPassword);
+    
+    if (user.value()->getPassword() == hashedOldPassword)
     {
+        user.value()->setPassword(hashedNewPassword);
         return saveUsers(); // Save changes to file
     }
     return false;
@@ -152,4 +170,66 @@ bool UserService::updateUsername(const string &oldUsername, const string &newUse
         return saveUsers(); // Save changes to file
     }
     return false;
+}
+
+bool UserService::changePassword(const string &username, const string &newPassword)
+{
+    auto user = findUserByUsername(username);
+    if (!user)
+    {
+        return false;
+    }
+    // Hash the new password before storing
+    string hashedNewPassword = HashHelper::md5(newPassword);
+    user.value()->setPassword(hashedNewPassword);
+    return saveUsers();
+}
+
+bool UserService::changePasswordWithOTP(const string &username, const string &oldPassword, const string &newPassword, const string &otp)
+{
+    // Validate input parameters
+    if (newPassword.empty()) {
+        cout << "Error: New password cannot be empty." << endl;
+        return false;
+    }
+    
+    if (newPassword == oldPassword) {
+        cout << "Error: New password must be different from old password." << endl;
+        return false;
+    }
+    
+    auto user = findUserByUsername(username);
+    if (!user) {
+        cout << "Error: User not found." << endl;
+        return false;
+    }
+    
+    // Verify old password
+    string hashedOldPassword = HashHelper::md5(oldPassword);
+    if (user.value()->getPassword() != hashedOldPassword) {
+        cout << "Error: Old password is incorrect." << endl;
+        return false;
+    }
+    
+    // Validate OTP
+    if (!OTPHelper::validateOTP(username, otp)) {
+        cout << "Error: Invalid or expired OTP." << endl;
+        return false;
+    }
+    
+    // Change password
+    string hashedNewPassword = HashHelper::md5(newPassword);
+    user.value()->setPassword(hashedNewPassword);
+    
+    // Remove OTP after successful use
+    OTPHelper::removeOTP(username);
+    
+    // Save changes
+    if (saveUsers()) {
+        cout << "Password changed successfully!" << endl;
+        return true;
+    } else {
+        cout << "Error: Failed to save password change." << endl;
+        return false;
+    }
 }

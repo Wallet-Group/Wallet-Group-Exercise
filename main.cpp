@@ -1,20 +1,14 @@
 #include <iostream>
 #include <string>
 #include "interface/UserService.h"
+#include "screen/userScreen.h"
+#include "screen/adminScreen.h"
 
 void printMainMenu() {
     std::cout << "\n=== Authentication System ===\n";
     std::cout << "1. Register\n";
     std::cout << "2. Login\n";
     std::cout << "3. Exit\n";
-    std::cout << "Choose an option: ";
-}
-
-void printUserMenu(const std::string& username) {
-    std::cout << "\n=== User Menu (" << username << ") ===\n";
-    std::cout << "1. Edit Username\n";
-    std::cout << "2. Change Password\n";
-    std::cout << "3. Logout\n";
     std::cout << "Choose an option: ";
 }
 
@@ -25,51 +19,6 @@ UserRole getRoleFromInput() {
     std::cin.ignore(); // Clear the newline character
     
     return (roleChoice == 1) ? UserRole::ADMIN : UserRole::USER;
-}
-
-void handleUserEdit(UserService& UserService, const std::shared_ptr<User>& currentUser) {
-    int choice;
-    std::string input;
-    
-    while (true) {
-        printUserMenu(currentUser->getUsername());
-        std::cin >> choice;
-        std::cin.ignore(); // Clear the newline character
-
-        switch (choice) {
-            case 1: { // Edit Username
-                std::cout << "Enter new username: ";
-                std::getline(std::cin, input);
-                
-                if (UserService.updateUsername(currentUser->getUsername(), input)) {
-                    std::cout << "Username updated successfully!\n";
-                    // Update the current user's username in memory
-                    currentUser->updateUsername(input);
-                } else {
-                    std::cout << "Failed to update username. It might be taken.\n";
-                }
-                break;
-            }
-            case 2: { // Change Password
-                std::string oldPassword, newPassword;
-                std::cout << "Enter current password: ";
-                std::getline(std::cin, oldPassword);
-                std::cout << "Enter new password: ";
-                std::getline(std::cin, newPassword);
-                
-                if (UserService.updateUserPassword(currentUser->getUsername(), oldPassword, newPassword)) {
-                    std::cout << "Password updated successfully!\n";
-                } else {
-                    std::cout << "Failed to update password. Check your current password.\n";
-                }
-                break;
-            }
-            case 3: // Logout
-                return;
-            default:
-                std::cout << "Invalid option. Please try again.\n";
-        }
-    }
 }
 
 int main() {
@@ -86,14 +35,20 @@ int main() {
 
             switch (choice) {
                 case 1: { // Register
+                    std::string username, password, name;
+                    int yearOfBirth;
+                    
                     std::cout << "Enter username: ";
                     std::getline(std::cin, username);
                     std::cout << "Enter password: ";
                     std::getline(std::cin, password);
+                    std::cout << "Enter full name: ";
+                    std::getline(std::cin, name);
+                    std::cout << "Enter year of birth: ";
+                    std::cin >> yearOfBirth;
+                    std::cin.ignore(); // Clear the newline character
                     
-                    // UserRole role = getRoleFromInput();
-                    
-                    if (UserService.registerUser(username, password, UserRole::USER)) {
+                    if (UserService.registerUser(username, password, name, yearOfBirth, UserRole::USER)) {
                         std::cout << "Registration successful!\n";
                     } else {
                         std::cout << "Registration failed. Username might be taken.\n";
@@ -125,7 +80,12 @@ int main() {
                     std::cout << "Invalid option. Please try again.\n";
             }
         } else {
-            handleUserEdit(UserService, currentUser);
+            // Route to appropriate screen based on user role
+            if (currentUser->getRole() == UserRole::ADMIN) {
+                showAdminScreen(currentUser, UserService);
+            } else {
+                showUserScreen(currentUser, UserService);
+            }
             currentUser.reset(); // Logout
         }
     }

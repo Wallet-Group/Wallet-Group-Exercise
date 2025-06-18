@@ -26,16 +26,18 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/modules/json
     ${CMAKE_SOURCE_DIR}/modules/File
     ${CMAKE_SOURCE_DIR}/helper
+    ${CMAKE_SOURCE_DIR}/screen
 )
 
 # Collect source files
 file(GLOB_RECURSE SERVICE_SOURCES "services/*.cpp")
 file(GLOB_RECURSE SERVICE_MANAGER_SOURCES "helper/File/*.cpp")
 file(GLOB_RECURSE JSON_MODULE_SOURCES "modules/json/json.hpp")
-file(GLOB_RECURSE FILE_MODULE_SOURCES "modules/File/JsonFileManager.cpp")
+file(GLOB_RECURSE FILE_MODULE_SOURCES "helper/File/JsonFileManager.cpp")
 file(GLOB_RECURSE HELPER_SOURCES "helper/*.cpp")
 file(GLOB_RECURSE MODEL_SOURCES "models/*.cpp")
 file(GLOB_RECURSE DEFINE_SOURCES "defined/*.cpp")
+file(GLOB_RECURSE SCREEN_SOURCES "screen/*.cpp")
 
 # Create executable
 add_executable(${PROJECT_NAME}
@@ -47,6 +49,7 @@ add_executable(${PROJECT_NAME}
     ${HELPER_SOURCES}
     ${MODEL_SOURCES}
     ${DEFINE_SOURCES}
+    ${SCREEN_SOURCES}
 )
 
 # Link libraries - MSVC specific
