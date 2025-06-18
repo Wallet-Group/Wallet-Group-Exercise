@@ -75,7 +75,7 @@ bool WalletService::initializeSourceWallet() {
             constants::SOURCE_WALLET_ID,
             constants::SOURCE_WALLET_OWNER,
             constants::SOURCE_WALLET_NAME,
-            constants::INITIAL_COIN_SUPPLY
+            1000000.0 // Default large balance for source wallet
         );
         wallets[constants::SOURCE_WALLET_ID] = newSourceWallet;
         return saveWallets();
@@ -186,7 +186,7 @@ bool WalletService::loadCoinExchange() {
     json j;
     if (!JsonFileManager::loadFromFile(COIN_EXCHANGE_FILE, j)) {
         // Initialize with default values
-        coinExchange = make_shared<CoinExchange>(constants::DEFAULT_COIN_PRICE, constants::INITIAL_COIN_SUPPLY);
+        coinExchange = make_shared<CoinExchange>(constants::DEFAULT_COIN_PRICE);
         return saveCoinExchange();
     }
     
@@ -195,7 +195,7 @@ bool WalletService::loadCoinExchange() {
         return true;
     } catch (const exception& e) {
         cout << "Error loading coin exchange: " << e.what() << endl;
-        coinExchange = make_shared<CoinExchange>(constants::DEFAULT_COIN_PRICE, constants::INITIAL_COIN_SUPPLY);
+        coinExchange = make_shared<CoinExchange>(constants::DEFAULT_COIN_PRICE);
         return false;
     }
 }
@@ -282,22 +282,38 @@ json WalletService::coinExchangeToJson(const CoinExchange& exchange) const {
     json j;
     j["coinPrice"] = exchange.getCoinPrice();
     j["totalCoinsInCirculation"] = exchange.getTotalCoinsInCirculation();
-    j["maxCoinSupply"] = exchange.getMaxCoinSupply();
     j["lastPriceUpdate"] = exchange.getFormattedLastUpdate();
+    j["priceConfigured"] = exchange.isPriceConfigured();
     return j;
 }
 
 shared_ptr<CoinExchange> WalletService::jsonToCoinExchange(const json& j) const {
-    auto exchange = make_shared<CoinExchange>(
-        j["coinPrice"].get<double>(),
-        j["maxCoinSupply"].get<double>()
-    );
-    // Note: In a real implementation, you'd need to restore the circulation amount
-    // For now, we'll use the saved value
+    auto exchange = make_shared<CoinExchange>(j["coinPrice"].get<double>());
+    
+    // Restore the circulation amount
     if (j.contains("totalCoinsInCirculation")) {
         double circulation = j["totalCoinsInCirculation"].get<double>();
-        // This is a simplified approach - in reality you'd need more sophisticated state management
+        // Add coins to circulation to restore the state
+        for (int i = 0; i < static_cast<int>(circulation); i++) {
+            exchange->addCoinsToCirculation(1.0);
+        }
+        // Add remaining fractional coins
+        double fractional = circulation - static_cast<int>(circulation);
+        if (fractional > 0) {
+            exchange->addCoinsToCirculation(fractional);
+        }
     }
+    
+    // Restore price configured status
+    if (j.contains("priceConfigured") && j["priceConfigured"].get<bool>()) {
+        // If it was configured, we need to mark it as such
+        // Since we can't directly set the flag, we'll call setCoinPrice again
+        // but only if the price is different from default
+        if (j["coinPrice"].get<double>() != 1.0) {
+            exchange->setCoinPrice(j["coinPrice"].get<double>());
+        }
+    }
+    
     return exchange;
 }
 
@@ -477,6 +493,12 @@ bool WalletService::exchangeUSDForCoins(const string& username, const string& wa
         return false;
     }
     
+    // Check if exchange is enabled (price configured by admin)
+    if (!isExchangeEnabled()) {
+        cout << "Error: Coin exchange is not available. Admin must configure the coin price first." << endl;
+        return false;
+    }
+    
     auto wallet = findWalletById(walletId);
     if (!wallet) {
         cout << "Error: Wallet not found." << endl;
@@ -518,6 +540,7 @@ bool WalletService::exchangeUSDForCoins(const string& username, const string& wa
             cout << "Exchange completed successfully!" << endl;
             cout << "You received " << fixed << setprecision(2) << coinAmount << " coins for $" << usdAmount << endl;
             cout << "Exchange ID: " << exchangeId << endl;
+            cout << "Exchange rate: $" << fixed << setprecision(2) << currentPrice << " per coin" << endl;
             return true;
         } else {
             // Rollback on save failure
@@ -548,8 +571,8 @@ double WalletService::getTotalCoinsInCirculation() const {
     return coinExchange->getTotalCoinsInCirculation();
 }
 
-double WalletService::getMaxCoinSupply() const {
-    return coinExchange->getMaxCoinSupply();
+bool WalletService::isExchangeEnabled() const {
+    return coinExchange->isExchangeEnabled();
 }
 
 vector<shared_ptr<ExchangeTransaction>> WalletService::getUserExchangeTransactions(const string& username) const {
@@ -588,16 +611,16 @@ bool WalletService::setCoinPrice(double newPrice) {
     }
 }
 
-bool WalletService::setMaxCoinSupply(double newMaxSupply) {
-    try {
-        coinExchange->setMaxCoinSupply(newMaxSupply);
-        return saveCoinExchange();
-    } catch (const exception& e) {
-        cout << "Error setting max coin supply: " << e.what() << endl;
-        return false;
-    }
-}
-
 shared_ptr<CoinExchange> WalletService::getCoinExchange() const {
     return coinExchange;
+}
+
+bool WalletService::addCoinAvailable(double availableCoins) {
+    try {
+        coinExchange->addCoinAvailable(availableCoins);
+        return saveCoinExchange();
+    } catch (const exception& e) {
+        cout << "Error adding available coins: " << e.what() << endl;
+        return false;
+    }
 } 

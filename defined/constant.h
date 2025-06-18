@@ -10,5 +10,4 @@ namespace constants {
     extern const std::string SOURCE_WALLET_ID;
     extern const std::string SOURCE_WALLET_NAME;
     extern const std::string SOURCE_WALLET_OWNER;
-    extern const double INITIAL_COIN_SUPPLY;
 } 

@@ -190,10 +190,16 @@ void showAdminScreen(shared_ptr<User> admin, UserService& userService, WalletSer
                 cout << "Current coin price: $" << fixed << setprecision(2) << walletService.getCurrentCoinPrice() << " per coin" << endl;
                 cout << "Total coins in circulation: " << fixed << setprecision(2) << walletService.getTotalCoinsInCirculation() << endl;
                 cout << "Available coins: " << fixed << setprecision(2) << walletService.getAvailableCoins() << endl;
-                cout << "Max coin supply: " << fixed << setprecision(2) << walletService.getMaxCoinSupply() << endl;
                 
-                cout << "\n1. Set Coin Price" << endl;
-                cout << "2. Set Max Coin Supply" << endl;
+                // Show exchange status
+                if (walletService.isExchangeEnabled()) {
+                    cout << "Exchange Status: ENABLED (Users can exchange USD for coins)" << endl;
+                } else {
+                    cout << "Exchange Status: DISABLED (Users cannot exchange until price is configured)" << endl;
+                }
+                
+                cout << "\n1. Set Coin Price (Enables exchange for users)" << endl;
+                cout << "2. Add Available Coins" << endl;
                 cout << "3. Back to Admin Menu" << endl;
                 cout << "Select an option: ";
                 
@@ -215,31 +221,27 @@ void showAdminScreen(shared_ptr<User> admin, UserService& userService, WalletSer
                         
                         if (walletService.setCoinPrice(newPrice)) {
                             cout << "Coin price updated successfully!" << endl;
+                            cout << "Exchange is now ENABLED for users." << endl;
                         } else {
                             cout << "Failed to update coin price." << endl;
                         }
                         break;
                     }
                     case 2: {
-                        double newMaxSupply;
-                        cout << "Enter new max coin supply: ";
-                        cin >> newMaxSupply;
+                        double availableCoins;
+                        cout << "Enter number of coins to add to available supply: ";
+                        cin >> availableCoins;
                         cin.ignore();
                         
-                        if (newMaxSupply <= 0) {
-                            cout << "Error: Max coin supply must be positive." << endl;
+                        if (availableCoins < 0) {
+                            cout << "Error: Available coins to add cannot be negative." << endl;
                             break;
                         }
                         
-                        if (newMaxSupply < walletService.getTotalCoinsInCirculation()) {
-                            cout << "Error: New max supply cannot be less than current circulation." << endl;
-                            break;
-                        }
-                        
-                        if (walletService.setMaxCoinSupply(newMaxSupply)) {
-                            cout << "Max coin supply updated successfully!" << endl;
+                        if (walletService.addCoinAvailable(availableCoins)) {
+                            cout << "Available coins increased successfully!" << endl;
                         } else {
-                            cout << "Failed to update max coin supply." << endl;
+                            cout << "Failed to add available coins." << endl;
                         }
                         break;
                     }

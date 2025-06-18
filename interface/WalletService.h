@@ -76,7 +76,7 @@ public:
     double getCurrentCoinPrice() const;
     double getAvailableCoins() const;
     double getTotalCoinsInCirculation() const;
-    double getMaxCoinSupply() const;
+    bool isExchangeEnabled() const;
     vector<shared_ptr<ExchangeTransaction>> getUserExchangeTransactions(const string& username) const;
     
     // Admin functions
@@ -84,6 +84,6 @@ public:
     vector<shared_ptr<Transaction>> getAllTransactions() const;
     vector<shared_ptr<ExchangeTransaction>> getAllExchangeTransactions() const;
     bool setCoinPrice(double newPrice);
-    bool setMaxCoinSupply(double newMaxSupply);
+    bool addCoinAvailable(double availableCoins);
     shared_ptr<CoinExchange> getCoinExchange() const;
 }; 

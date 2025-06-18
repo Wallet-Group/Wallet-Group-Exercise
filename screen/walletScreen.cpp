@@ -13,7 +13,14 @@ void showWalletScreen(shared_ptr<User> user, WalletService& walletService) {
         cout << "2. Create New Wallet" << endl;
         cout << "3. Transfer Coins" << endl;
         cout << "4. Add Funds" << endl;
-        cout << "5. Exchange USD for Coins" << endl;
+        
+        // Check if exchange is enabled before showing the option
+        if (walletService.isExchangeEnabled()) {
+            cout << "5. Exchange USD for Coins" << endl;
+        } else {
+            cout << "5. Exchange USD for Coins (Disabled - Admin must configure price)" << endl;
+        }
+        
         cout << "6. View Transaction History" << endl;
         cout << "7. View Exchange History" << endl;
         cout << "8. Delete Wallet" << endl;
@@ -132,6 +139,15 @@ void showWalletScreen(shared_ptr<User> user, WalletService& walletService) {
                 break;
             }
             case 5: {
+                // Check if exchange is enabled
+                if (!walletService.isExchangeEnabled()) {
+                    cout << "\n--- Coin Exchange Status ---" << endl;
+                    cout << "Coin exchange is currently disabled." << endl;
+                    cout << "Admin must configure the coin price before exchanges can be made." << endl;
+                    cout << "Please contact an administrator to enable coin exchange." << endl;
+                    break;
+                }
+                
                 string walletId;
                 double usdAmount;
                 
