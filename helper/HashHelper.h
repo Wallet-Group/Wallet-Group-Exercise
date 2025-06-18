@@ -9,6 +9,9 @@ public:
     // Hash a string using SHA-256
     static string sha256(const string &input);
 
+    // Hash a string using MD5
+    static string md5(const string &input);
+
     // Generate a random salt
     static string generateSalt(size_t length = 16);
 

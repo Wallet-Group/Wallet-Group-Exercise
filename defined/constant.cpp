@@ -1,10 +1,9 @@
-#pragma once
-
-#include <string>
+#include "constant.h"
 
 namespace constants {
-    // Example constant variables
-    constexpr int MAX_LOGIN_ATTEMPTS = 5;
-    constexpr double PI = 3.141592653589793;
-    const std::string APP_NAME = "WalletCplus";
+    // Coin exchange constants
+    const double DEFAULT_COIN_PRICE = 1.0; // 1 USD = 1 coin by default
+    const std::string SOURCE_WALLET_ID = "SOURCE_WALLET_001";
+    const std::string SOURCE_WALLET_NAME = "System Source Wallet";
+    const std::string SOURCE_WALLET_OWNER = "SYSTEM";
 }

@@ -34,7 +34,7 @@ public:
     UserService();
 
     // Register a new user
-    bool registerUser(const string &username, const string &password, UserRole role);
+    bool registerUser(const string &username, const string &password, const string &name, int yearOfBirth, UserRole role = UserRole::USER);
 
     // Login a user
     optional<shared_ptr<User>> login(const string &username, const string &password) const;
@@ -48,4 +48,10 @@ public:
     // Update user information
     bool updateUserPassword(const string &username, const string &oldPassword, const string &newPassword);
     bool updateUsername(const string &oldUsername, const string &newUsername);
+
+    // Change password (admin or user, no old password required)
+    bool changePassword(const string &username, const string &newPassword);
+
+    // Change password with OTP verification
+    bool changePasswordWithOTP(const string &username, const string &oldPassword, const string &newPassword, const string &otp);
 };
