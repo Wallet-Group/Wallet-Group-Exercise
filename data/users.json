@@ -1,9 +1,19 @@
 {
     "users": [
+        
         {
-            "password": "12344",
-            "role": 0,
-            "username": "hello1"
+            "name": "admin",
+            "password": "10325476abf84489efcdab8998badcfe",
+            "role": 2,
+            "username": "admin",
+            "yearOfBirth": 1999
+        },
+        {
+            "name": "hello",
+            "password": "10325476abf84489efcdab8998badcfe",
+            "role": 1,
+            "username": "hello1",
+            "yearOfBirth": 1999
         }
     ]
 }

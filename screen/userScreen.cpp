@@ -4,14 +4,15 @@
 
 using namespace std;
 
-void showUserScreen(shared_ptr<User> user, UserService& userService) {
+void showUserScreen(shared_ptr<User> user, UserService& userService, WalletService& walletService) {
     int choice;
     bool running = true;
     while (running) {
         cout << "\n--- User Menu ---" << endl;
         cout << "1. Change Username" << endl;
         cout << "2. Change Password with OTP" << endl;
-        cout << "3. Logout" << endl;
+        cout << "3. Wallet Management" << endl;
+        cout << "4. Logout" << endl;
         cout << "Select an option: ";
         cin >> choice;
         cin.ignore();
@@ -65,6 +66,9 @@ void showUserScreen(shared_ptr<User> user, UserService& userService) {
                 break;
             }
             case 3:
+                showWalletScreen(user, walletService);
+                break;
+            case 4:
                 cout << "Logging out..." << endl;
                 running = false;
                 break;

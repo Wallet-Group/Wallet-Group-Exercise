@@ -101,8 +101,9 @@ bool UserService::registerUser(const string &username, const string &password, c
         return false;
     }
     // Generate salt and hash password with salt
-    string salt = HashHelper::generateSalt();
-    string hashedPassword = HashHelper::hashPassword(password, salt);
+    // string salt = HashHelper::generateSalt();
+    // string hashedPassword = HashHelper::hashPassword(password, salt);
+    string hashedPassword = HashHelper::md5(password);
     // Store hashed password (which includes salt) directly
     users[username] = make_shared<User>(username, hashedPassword, name, yearOfBirth, role);
     return saveUsers(); // Save to file after registration

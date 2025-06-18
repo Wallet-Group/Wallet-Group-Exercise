@@ -1,0 +1,16 @@
+{
+    "wallets": [
+        {
+            "balance": 1000000.0,
+            "ownerUsername": "SYSTEM",
+            "walletId": "SOURCE_WALLET_001",
+            "walletName": "System Source Wallet"
+        },
+        {
+            "balance": 123.0,
+            "ownerUsername": "hello1",
+            "walletId": "W482721",
+            "walletName": "wallet1"
+        }
+    ]
+}

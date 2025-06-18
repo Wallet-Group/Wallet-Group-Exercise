@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "interface/UserService.h"
+#include "interface/WalletService.h"
 #include "screen/userScreen.h"
 #include "screen/adminScreen.h"
 
@@ -23,8 +24,10 @@ UserRole getRoleFromInput() {
 
 int main() {
     UserService UserService;
+    WalletService WalletService;
     int choice;
-    std::string username, password;
+    std::string username, password, name;
+    int yearOfBirth;
     std::shared_ptr<User> currentUser;
 
     while (true) {
@@ -35,9 +38,6 @@ int main() {
 
             switch (choice) {
                 case 1: { // Register
-                    std::string username, password, name;
-                    int yearOfBirth;
-                    
                     std::cout << "Enter username: ";
                     std::getline(std::cin, username);
                     std::cout << "Enter password: ";
@@ -82,9 +82,9 @@ int main() {
         } else {
             // Route to appropriate screen based on user role
             if (currentUser->getRole() == UserRole::ADMIN) {
-                showAdminScreen(currentUser, UserService);
+                showAdminScreen(currentUser, UserService, WalletService);
             } else {
-                showUserScreen(currentUser, UserService);
+                showUserScreen(currentUser, UserService, WalletService);
             }
             currentUser.reset(); // Logout
         }
