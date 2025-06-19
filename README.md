@@ -166,18 +166,17 @@ wallet/
 
 2. **Create build directory**
    ```bash
-   mkdir build
-   cd build
+   cmake -S . -B build
    ```
 
 3. **Configure the project**
    ```bash
-   cmake ..
+   cmake ./build/
    ```
 
 4. **Build the project**
    ```bash
-   cmake --build . --config Debug
+   cmake --build build --config Debug
    ```
 
 ### Build Options
