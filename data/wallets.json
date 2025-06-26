@@ -11,6 +11,18 @@
             "ownerUsername": "hello1",
             "walletId": "W482721",
             "walletName": "wallet1"
+        },
+        {
+            "balance": 0.0,
+            "ownerUsername": "xyz",
+            "walletId": "W798849",
+            "walletName": "vi_1"
+        },
+        {
+            "balance": 0.0,
+            "ownerUsername": "xyz",
+            "walletId": "W298209",
+            "walletName": "vi2"
         }
     ]
 }

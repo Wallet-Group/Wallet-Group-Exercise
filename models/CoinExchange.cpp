@@ -47,7 +47,7 @@ void CoinExchange::addCoinAvailable(double availableCoins) {
     if (availableCoins < 0) {
         throw std::invalid_argument("Available coins to add cannot be negative");
     }
-    totalCoinsInCirculation -= availableCoins; // Decrease circulation to increase available coins
+    totalCoinsInCirculation += availableCoins; // Decrease circulation to increase available coins
     if (totalCoinsInCirculation < 0) totalCoinsInCirculation = 0;
 }
 
